@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Podcast.MVC", "Podcast.MVC\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Podcast.DAL", "Podcast.DAL\Podcast.DAL.csproj", "{C76D4DFE-51ED-47A3-B66A-CA4D3357696D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Podcast.BLL", "Podcast.BLL\Podcast.BLL.csproj", "{6959ED2A-D82F-4E18-ABBC-E83DBBAD95B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Podcast.BLL", "Podcast.BLL\Podcast.BLL.csproj", "{6959ED2A-D82F-4E18-ABBC-E83DBBAD95B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
