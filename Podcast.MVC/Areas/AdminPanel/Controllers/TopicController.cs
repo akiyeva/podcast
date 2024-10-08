@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Podcast.BLL.Services.Contracts;
 using Podcast.BLL.ViewModels.TopicViewModels;
 using AutoMapper;
+using NuGet.Protocol.Core.Types;
 
 namespace Podcast.MVC.Areas.AdminPanel.Controllers
 {
@@ -74,9 +75,32 @@ namespace Podcast.MVC.Areas.AdminPanel.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            var topic = await _topicService.GetAsync(id);
+            var topic = await _topicService.GetAsync(predicate: x => x.Id == id, include: y => y.Include(z => z.Episodes!));
 
-            return View(topic);
+            if (topic == null)
+            {
+                return NotFound();
+            }
+
+            var topicViewModel = _mapper.Map<TopicViewModel>(topic);
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(TopicViewModel topicViewModel)
+        {
+            try 
+            {
+                await _topicService.RemoveAsync(topicViewModel.Id);
+            }
+            catch(Exception)
+            {
+                throw;
+            }
+
+            return RedirectToAction("Index");
         }
     }
 }
