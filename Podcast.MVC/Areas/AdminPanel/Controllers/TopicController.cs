@@ -2,24 +2,19 @@
 using Microsoft.EntityFrameworkCore;
 using Podcast.BLL.Services.Contracts;
 using Podcast.BLL.ViewModels.TopicViewModels;
-using Podcast.DAL.DataContext;
-using Podcast.DAL.DataContext.Entities;
-using Podcast.MVC.Helpers;
+using AutoMapper;
 
 namespace Podcast.MVC.Areas.AdminPanel.Controllers
 {
     public class TopicController : AdminController
     {
         private readonly ITopicService _topicService;
-        private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly string FOLDER_PATH = "";
-        private readonly AppDbContext _appDbContext;
-        public TopicController(ITopicService topicService, IWebHostEnvironment webHostEnvironment, AppDbContext appDbContext)
+        private readonly IMapper _mapper;
+
+        public TopicController(ITopicService topicService, IMapper mapper)
         {
             _topicService = topicService;
-            _webHostEnvironment = webHostEnvironment;
-            FOLDER_PATH = Path.Combine(_webHostEnvironment.WebRootPath, "admin", "images", "topics");
-            _appDbContext = appDbContext;
+            _mapper = mapper;
         }
         public async Task<IActionResult> Index()
         {
@@ -45,6 +40,43 @@ namespace Podcast.MVC.Areas.AdminPanel.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> Edit(int id)
+        {
+            var topic = await _topicService.GetAsync(predicate: x => x.Id == id, include: y => y.Include(z => z.Episodes!));
+
+            if (topic == null)
+            {
+                return NotFound();
+            }
+
+            var updateViewModel = _mapper.Map<TopicUpdateViewModel>(topic);
+
+            return View(updateViewModel);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(TopicUpdateViewModel updateViewModel)
+        {
+            try
+            {
+                await _topicService.UpdateAsync(updateViewModel);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            var topic = await _topicService.GetAsync(id);
+
+            return View(topic);
         }
     }
 }

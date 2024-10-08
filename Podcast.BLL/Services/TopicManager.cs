@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore.Query;
-using Podcast.BLL.Helpers;
+using Podcast.B.Helpers;
 using Podcast.BLL.Services.Contracts;
-using Podcast.BLL.ViewModels;
 using Podcast.BLL.ViewModels.SpeakerViewModels;
 using Podcast.BLL.ViewModels.TopicViewModels;
 using Podcast.DAL.DataContext.Entities;
@@ -25,9 +24,12 @@ public class TopicManager : CrudManager<Topic, TopicViewModel, TopicCreateViewMo
         _webHostEnvironment = webHostEnvironment;
         FOLDER_PATH = Path.Combine(_webHostEnvironment.WebRootPath, "admin", "images", "topics");
     }
-    public async Task<TopicViewModel?> GetAsync(int id)
+    public override async Task<TopicViewModel?> GetAsync(int id)
     {
         var topic = await _repository.GetAsync(id);
+
+        if (topic == null) throw new Exception();
+
         var topicViewModel = _mapper.Map<TopicViewModel>(topic);
         return topicViewModel;
     }
@@ -35,7 +37,14 @@ public class TopicManager : CrudManager<Topic, TopicViewModel, TopicCreateViewMo
     {
         return base.GetAsync(predicate, include, orderBy);
     }
+    public override async Task<IEnumerable<TopicViewModel>> GetListAsync(Expression<Func<Topic, bool>>? predicate = null, Func<IQueryable<Topic>, IIncludableQueryable<Topic, object>>? include = null, Func<IQueryable<Topic>, IOrderedQueryable<Topic>>? orderBy = null)
+    {
+        var topicList = await _repository.GetListAsync(predicate, include, orderBy);
 
+        var topicViewModelList = _mapper.Map<List<TopicViewModel>>(topicList);
+
+        return topicViewModelList;
+    }
 
     public override async Task<TopicViewModel> CreateAsync(TopicCreateViewModel createViewModel)
     {
@@ -43,7 +52,7 @@ public class TopicManager : CrudManager<Topic, TopicViewModel, TopicCreateViewMo
         if (createViewModel.Name is null) throw new Exception();
 
         #region FileValidations
-        if (!createViewModel.CoverFile.CheckType()) throw new Exception();  
+        if (!createViewModel.CoverFile.CheckType()) throw new Exception();
         if (!createViewModel.CoverFile.CheckSize(2)) throw new Exception();
         #endregion
 
@@ -59,6 +68,31 @@ public class TopicManager : CrudManager<Topic, TopicViewModel, TopicCreateViewMo
 
     public override async Task<TopicViewModel> UpdateAsync(TopicUpdateViewModel updateViewModel)
     {
+        if (updateViewModel.CoverFile != null)
+        {
+            if (!updateViewModel.CoverFile.CheckType())
+            {
+                throw new Exception("Invalid file type");
+            }
+
+            if (!updateViewModel.CoverFile.CheckSize(2))
+            {
+                throw new Exception("File size exceeds the limit");
+            }
+
+            updateViewModel.CoverUrl = await updateViewModel.CoverFile.CreateImageAsync(FOLDER_PATH);
+        }
+        else 
+        {
+            var existingTopic = await _repository.GetAsync(updateViewModel.Id);
+            if (existingTopic == null)
+            {
+                throw new Exception("Topic not found");
+            }
+
+            updateViewModel.CoverUrl = existingTopic.CoverUrl;
+        }
+
         var topic = _mapper.Map<Topic>(updateViewModel);
 
         var updatedTopic = await _repository.UpdateAsync(topic);

@@ -24,9 +24,12 @@ public class AutoMapperProfile : Profile
         CreateMap<TopicViewModel, Topic>().ReverseMap();
         CreateMap<TopicCreateViewModel, Topic>().ReverseMap();
         CreateMap<TopicUpdateViewModel, Topic>().ReverseMap();
+        CreateMap<TopicViewModel, TopicUpdateViewModel>()
+           .ForMember(dest => dest.CoverFile, opt => opt.Ignore());
 
         CreateMap<EpisodeViewModel, Episode>().ReverseMap();
         CreateMap<EpisodeCreateViewModel, Episode>().ReverseMap();
         CreateMap<EpisodeUpdateViewModel, Episode>().ReverseMap();
+       
     }
 }

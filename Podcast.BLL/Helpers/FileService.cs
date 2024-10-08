@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Podcast.BLL.Helpers;
+namespace Podcast.B.Helpers;
 
 public static class FileService
 {
