@@ -19,7 +19,7 @@ namespace Podcast.MVC.Areas.AdminPanel.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            var topicList = await _topicService.GetListAsync(include: x => x.Include(y => y.Episodes!));
+            var topicList = await _topicService.GetListAsync();
             return View(topicList);
         }
         public IActionResult Create()
@@ -45,12 +45,7 @@ namespace Podcast.MVC.Areas.AdminPanel.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var topic = await _topicService.GetAsync(predicate: x => x.Id == id, include: y => y.Include(z => z.Episodes!));
-
-            if (topic == null)
-            {
-                return NotFound();
-            }
+            var topic = await _topicService.GetAsync(id);
 
             var updateViewModel = _mapper.Map<TopicUpdateViewModel>(topic);
 
@@ -70,20 +65,6 @@ namespace Podcast.MVC.Areas.AdminPanel.Controllers
             {
                 throw;
             }
-            return RedirectToAction("Index");
-        }
-
-        public async Task<IActionResult> Delete(int id)
-        {
-            var topic = await _topicService.GetAsync(predicate: x => x.Id == id, include: y => y.Include(z => z.Episodes!));
-
-            if (topic == null)
-            {
-                return NotFound();
-            }
-
-            var topicViewModel = _mapper.Map<TopicViewModel>(topic);
-
             return RedirectToAction("Index");
         }
 
