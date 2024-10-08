@@ -68,6 +68,15 @@ public class TopicManager : CrudManager<Topic, TopicViewModel, TopicCreateViewMo
 
     public override async Task<TopicViewModel> UpdateAsync(TopicUpdateViewModel updateViewModel)
     {
+        var existingTopic = await _repository.GetAsync(updateViewModel.Id);
+
+        if (existingTopic == null)
+        {
+            throw new Exception("Topic not found");
+        }
+
+        existingTopic.Name = updateViewModel.Name;
+
         if (updateViewModel.CoverFile != null)
         {
             if (!updateViewModel.CoverFile.CheckType())
@@ -80,22 +89,10 @@ public class TopicManager : CrudManager<Topic, TopicViewModel, TopicCreateViewMo
                 throw new Exception("File size exceeds the limit");
             }
 
-            updateViewModel.CoverUrl = await updateViewModel.CoverFile.CreateImageAsync(FOLDER_PATH);
-        }
-        else 
-        {
-            var existingTopic = await _repository.GetAsync(updateViewModel.Id);
-            if (existingTopic == null)
-            {
-                throw new Exception("Topic not found");
-            }
-
-            updateViewModel.CoverUrl = existingTopic.CoverUrl;
+            existingTopic.CoverUrl = await updateViewModel.CoverFile.CreateImageAsync(FOLDER_PATH);
         }
 
-        var topic = _mapper.Map<Topic>(updateViewModel);
-
-        var updatedTopic = await _repository.UpdateAsync(topic);
+        var updatedTopic = await _repository.UpdateAsync(existingTopic);
 
         var topicViewModel = _mapper.Map<TopicViewModel>(updatedTopic);
 
